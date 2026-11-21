@@ -387,9 +387,3 @@ extension UTType {
     /// so fall back to a dynamic type built from the file extension.
     static let sideStoreConfiguration = UTType(filenameExtension: "sideconf") ?? .data
 }
-
-extension UTType {
-    /// The encrypted account backup exported by SideStore. It is not a registered type,
-    /// so fall back to a dynamic type built from the file extension.
-    static let sideStoreConfiguration = UTType(filenameExtension: "sideconf") ?? .data
-}
