@@ -61,9 +61,20 @@ final class AnisetteDataHelper
     // MARK: - COMMON
     
     func extractAnisetteData(_ data: Data, _ response: HTTPURLResponse?, v3: Bool) async throws -> AnisetteData {
-        // make sure this JSON is in the format we expect
-        // convert data to json
-        if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: String] {
+        // Diagnose HTTP error pages before attempting to decode a JSON response.
+        // Some Anisette servers return HTML on 502/503, which used to surface as
+        // the misleading NSCocoaErrorDomain 3840 ("incorrect format").
+        if let status = response?.statusCode, !(200...299).contains(status) {
+            throw "Anisette server returned HTTP \(status). Check the server URL in Settings, and try a trusted server compatible with the SideStore account."
+        }
+
+        let responseObject: Any
+        do {
+            responseObject = try JSONSerialization.jsonObject(with: data, options: [])
+        } catch {
+            throw "Anisette server returned an unreadable response instead of JSON. Check its URL and availability."
+        }
+        if let json = responseObject as? [String: String] {
             if v3 {
                 if json["result"] == "GetHeadersError" {
                     let message = json["message"]
@@ -347,8 +358,11 @@ final class AnisetteDataHelper
         
         self.printOut("Using custom client_info")
                         
-        self.clientInfo = "<iMac18,3> <macOS;27.0;26A5378j> <com.apple.AuthKit/1 (com.apple.akd/1.0)>"
-        self.userAgent = "AuthKit/1 (Macintosh; OS X 27.0) (com.apple.akd/1.0)"
+        // Apple's GSA endpoint began returning 503 for the `macOS;` OS label
+        // on 2026-11-20. SideStore issue #1745 documents a working Mac OS X
+        // identity with this OS/build pair. Match that for authentication.
+        self.clientInfo = "<MacBookPro13,3> <Mac OS X;26.6;25F84> <com.apple.AuthKit/1 (com.apple.akd/1.0)>"
+        self.userAgent = "akd/1.0 CFNetwork/811.5.4 Darwin/16.7.0"
         self.printOut("Client-Info: \(self.clientInfo!)")
         self.printOut("User-Agent: \(self.userAgent!)")
         
