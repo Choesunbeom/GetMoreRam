@@ -32,9 +32,25 @@ class AppIDModel : ObservableObject, Hashable {
             throw "Please Login First"
         }
 
-        let cool = try await AppleAPI.shared.updateAppID(appID, capabilities: ["INCREASED_MEMORY_LIMIT"], team: team, session: session)
-        
-        result = "\(cool)"
+        // StosSign's generic updateAppID helper hides JSON:API errors (including
+        // permission/restriction details) behind AppleAPIError code 3. Use a
+        // capability-specific request that reports Apple's actual response.
+        await MainActor.run {
+            result = "Submitting Increased Memory Limit capability request..."
+        }
+        do {
+            let message = try await MemoryCapabilityUpdater.enable(
+                for: appID, team: team, session: session
+            )
+            await MainActor.run {
+                result = message
+            }
+        } catch {
+            await MainActor.run {
+                result = "The capability request failed. No memory entitlement has been verified.\n" + error.detailedDescription
+            }
+            throw error
+        }
     }
     
 }
