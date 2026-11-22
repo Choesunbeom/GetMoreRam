@@ -238,7 +238,7 @@ struct SettingsView: View {
             if nsError.domain == NSCocoaErrorDomain && nsError.code == 3840 {
                 // This happens during the network authentication step, not
                 // while decrypting the imported SideStore account.
-                errorInfo = "Sign-in failed because the server returned data in an unexpected format (3840). This can happen when Apple's login service responds with an error page. Try an Anisette server compatible with the one used by SideStore, then sign in again.\\n\\n" + error.detailedDescription
+                errorInfo = "Sign-in failed because the server returned data in an unexpected format (3840). This can happen when Apple's login service responds with an error page. Try an Anisette server compatible with the one used by SideStore, then sign in again.\n\n" + error.detailedDescription
             } else {
                 errorInfo = error.detailedDescription
             }
