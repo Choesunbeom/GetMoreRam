@@ -54,39 +54,41 @@ enum MemoryCapabilityUpdater {
 
         // Modern capability updates use this JSON:API bundleIds relationship,
         // not the legacy QH65B2 feature flags.
-        let requestBody: [String: Any] = [
-            "data": [
-                "type": "bundleIds",
-                "id": appID.identifier,
-                "attributes": [
-                    "name": appID.name,
-                    "identifier": appID.bundleIdentifier,
-                    "teamId": team.identifier,
-                    "seedId": team.identifier,
-                    "bundleType": "bundle",
-                    "hasExclusiveManagedCapabilities": false
-                ],
-                "relationships": [
-                    "bundleIdCapabilities": [
-                        "data": [[
-                            "type": "bundleIdCapabilities",
-                            "attributes": [
-                                "enabled": true,
-                                "settings": []
-                            ],
-                            "relationships": [
-                                "capability": [
-                                    "data": [
-                                        "type": "capabilities",
-                                        "id": capabilityID
-                                    ]
-                                ]
-                            ]
-                        ]]
+        // Give nested JSON:API objects explicit types to keep Swift's type
+        // checker fast and deterministic in Xcode Release builds.
+        let capability: [String: Any] = [
+            "type": "bundleIdCapabilities",
+            "attributes": [
+                "enabled": true,
+                "settings": []
+            ] as [String: Any],
+            "relationships": [
+                "capability": [
+                    "data": [
+                        "type": "capabilities",
+                        "id": capabilityID
                     ]
                 ]
-            ]
+            ] as [String: Any]
         ]
+        let attributes: [String: Any] = [
+            "name": appID.name,
+            "identifier": appID.bundleIdentifier,
+            "teamId": team.identifier,
+            "seedId": team.identifier,
+            "bundleType": "bundle",
+            "hasExclusiveManagedCapabilities": false
+        ]
+        let relationships: [String: Any] = [
+            "bundleIdCapabilities": ["data": [capability]]
+        ]
+        let resource: [String: Any] = [
+            "type": "bundleIds",
+            "id": appID.identifier,
+            "attributes": attributes,
+            "relationships": relationships
+        ]
+        let requestBody: [String: Any] = ["data": resource]
 
         var request = URLRequest(url: url)
         request.httpMethod = "PATCH"
