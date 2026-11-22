@@ -35,7 +35,7 @@ struct MemoryCapabilityUpdateError: LocalizedError {
             return "Apple rejected this capability update. Review the error details above; do not assume the entitlement was granted."
         case 429:
             return "Too many requests. Avoid repeated attempts and try again later."
-        case 500...599:
+        case let status? where (500...599).contains(status):
             return "Apple's developer service may be temporarily unavailable."
         default:
             return "The App ID is unchanged unless Apple accepts the request. Do not rely on the memory entitlement until it is present in the new provisioning profile."
